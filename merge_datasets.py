@@ -8,6 +8,9 @@ from geopy.geocoders import Nominatim
 geolocator = Nominatim(user_agent="BDA")
 
 pd.set_option('display.max_columns', None)
+pd.set_option('display.expand_frame_repr', False)
+pd.set_option('max_colwidth', -1)
+
 
 date_parser_mass = lambda x: pd.datetime.strptime(x, '%Y-%m-%d %H:%M:%S')
 # date_parser_mary = lambda x: pd.datetime.strptime(x, '%m/%d/%Y %H:%M:%S %p')
@@ -16,8 +19,8 @@ mass_raw = pd.read_csv("Massachusetts.csv", parse_dates = ['OCCURRED_ON_DATE'], 
 mary_raw = pd.read_csv("Maryland.csv", parse_dates = ['Start_Date_Time']) # date_parser = date_parser_mary
 
 # Random 1000 samples
-mass_raw = mass_raw.sample(n=100)
-mary_raw = mary_raw.sample(n=100)
+mass_raw = mass_raw.sample(n=10)
+mary_raw = mary_raw.sample(n=10)
 
 mass_final = pd.DataFrame()
 mary_final = pd.DataFrame()
@@ -59,5 +62,9 @@ def geocode_reverse(lat, lng):
 mass_final['Address'] = mass_raw.apply(lambda x: geocode_reverse(x['Lat'], x['Long']), axis=1)
 mary_final['Address'] = mary_raw.apply(lambda x: geocode_reverse(x['Latitude'], x['Longitude']), axis=1)
 
-# print(mass_raw['OCCURRED_ON_DATE'])
-# print(mary_raw['Start_Date_Time'])
+mass_final['Zipcode'] = mass_final['Address'].apply(lambda x: x.split(",")[-2] if x is not None else x)
+mary_final['Zipcode'] = mary_final['Address'].apply(lambda x: x.split(",")[-2] if x is not None else x)
+mass_final['City'] = mass_final['Address'].apply(lambda x: x.split(",")[-5:-4] if x is not None else x)
+mary_final['City'] = mary_final['Address'].apply(lambda x: x.split(",")[-5:-4] if x is not None else x)
+print(pd.concat([mass_final,mary_final], axis=1))
+#print(mary_final['Address'].apply(lambda x: x.split(",") if x is not None else x))
